@@ -52,6 +52,4 @@ describe('test user ', () => {
       cy.get(".error").contains(message)
 
   })
-
-  
 })
