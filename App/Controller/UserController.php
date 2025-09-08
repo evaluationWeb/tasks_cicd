@@ -68,15 +68,15 @@ class UserController
                     $this->userRepository->saveUser($user);
                     //Message et redirection
                     $message = "Le compte : " . $user->getEmail() . " a été ajouté en BDD";
-                    header("Refresh:2; url=" . $base ."/user/register");
+                    header("Refresh:4; url=" . $base ."/user/register");
                 } else {
 
                     $message = "Le compte existe déja";
-                    header("Refresh:2; url=" . $base . "/user/register");
+                    header("Refresh:4; url=" . $base . "/user/register");
                 }
             } else {
                 $message = "Veuillez remplir tous les champs";
-                header("Refresh:2; url=" . $base . "/user/register");
+                header("Refresh:4; url=" . $base . "/user/register");
             }
         }
 
