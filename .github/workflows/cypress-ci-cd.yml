@@ -1,6 +1,5 @@
-# Nom du pipeline
-name: E2E CI/CD Cypress +  PHP + Apache + MySQL
-# Déclencheurs push et pull request github
+name: E2E avec MySQL + Apache + Cypress
+
 on:
   push:
     branches: [ "test", "main" ]
@@ -9,62 +8,56 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Nom du CI/CD
-  ci-cd:
+  e2e:
     runs-on: ubuntu-latest
-    # Service Base de données MySQL
+
     services:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: Adrar@3100
+          MYSQL_ROOT_PASSWORD: rootpw
           MYSQL_DATABASE: taskdb
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -prootpw"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-    # Etapes du pipeline
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Installation de PHP et Composer
       - name: Setup PHP CLI (Composer & outils)
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
           extensions: mbstring, intl, pdo_mysql, sodium, zip
-          coverage: none
           tools: composer
-      # créer le fichier env.php
-      - name: Creer fichier env
+          coverage: none
+
+      - name: Installer dépendances Composer
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Importer la base de données
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -u root -prootpw < base.sql
+      - name: Build env.php for the app
         run: |
           cat > env.php <<'PHP'
           <?php
           const BDD_LOGIN = "root";
-          const BDD_PASSWORD = "Adrar@3100";
+          const BDD_PASSWORD = "rootpw";
           const BDD_SERVER = "127.0.0.1:3306";
           const BDD_NAME = "taskdb";
           const BASE_URL = "/";
           PHP
-      
-      # installer les dépendances PHP
-      - name: Composer install
-        run: |
-          composer install 
-      # migration BDD
-      - name: Migration BDD
-        run: |
-          mysql -h 127.0.0.1 -P 3306 -u root -pAdrar@3100 < base.sql 
-      
-      # démarrer le serveur PHP
-      - name: start serveur PHP
+      - name: start PHP
         run: |
           php -S 127.0.0.1:8000
-      
-      # installer et démarrer les tests Cypress
+
+      # Cypress Actions
       - name : Test Cypress
         uses: cypress-io/github-action@v6
+      
