@@ -43,7 +43,7 @@ jobs:
       - name: Importer la base de données
         run: |
           mysql -h 127.0.0.1 -P 3306 -u root -prootpw < base.sql
-      - name: Build env.php for the app
+      - name: Build env.php for the app test
         run: |
           cat > env.php <<'PHP'
           <?php
@@ -60,3 +60,23 @@ jobs:
       - name : Test Cypress
         uses: cypress-io/github-action@v6
       
+      # fichier env de production
+      - name: Build env.php for the app prod
+        run: |
+          cat > env.php <<'PHP'
+          <?php
+          const BDD_LOGIN = "${{ secrets.BDD_LOGIN }}";
+          const BDD_PASSWORD = "${{ secrets.BDD_PASSWORD }}";
+          const BDD_SERVER = "${{ secrets.BDD_HOST }}";
+          const BDD_NAME = "${{ secrets.BDD_NAME }}";
+          const BASE_URL = "/";
+          PHP
+
+      # Deploy to FTP
+      - name: 📂 Deployment to FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
