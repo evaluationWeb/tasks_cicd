@@ -1,0 +1,62 @@
+name: E2E avec MySQL + Apache + Cypress
+
+on:
+  push:
+    branches: [ "test", "main" ]
+  pull_request:
+    branches: [ "test" , "main"]
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpw
+          MYSQL_DATABASE: taskdb
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -prootpw"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP CLI (Composer & outils)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, pdo_mysql, sodium, zip
+          tools: composer
+          coverage: none
+
+      - name: Installer dépendances Composer
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Importer la base de données
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -u root -prootpw < base.sql
+      - name: Build env.php for the app
+        run: |
+          cat > env.php <<'PHP'
+          <?php
+          const BDD_LOGIN = "root";
+          const BDD_PASSWORD = "rootpw";
+          const BDD_SERVER = "127.0.0.1:3306";
+          const BDD_NAME = "taskdb";
+          const BASE_URL = "/";
+          PHP
+      - name: start PHP
+        run: php -S 127.0.0.1:8000 &
+
+      # Cypress Actions 
+      - name : Test Cypress
+        uses: cypress-io/github-action@v6
+      
