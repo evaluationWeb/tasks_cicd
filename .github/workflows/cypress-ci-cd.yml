@@ -1,0 +1,71 @@
+# Nom du pipeline
+name: E2E CI/CD Cypress +  PHP + Apache + MySQL
+# Déclencheurs push et pull request github
+on:
+  push:
+    branches: [ "test", "main" ]
+  pull_request:
+    branches: [ "test" , "main"]
+  workflow_dispatch:
+
+jobs:
+  # Nom du CI/CD
+  ci-cd:
+    runs-on: ubuntu-latest
+    # Service Base de données MySQL
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: Adrar@3100
+          MYSQL_DATABASE: taskdb
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    # Etapes du pipeline
+    steps:
+      # Récupération du code
+      - name: Checkout
+        uses: actions:checkout@v4
+
+      # Installation de PHP et Composer
+      - name: Setup PHP CLI (Composer & outils)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, pdo_mysql, sodium, zip
+          coverage: none
+          tools: composer
+      # créer le fichier env.php
+      - name: Creer fichier env
+        run: |
+          cat > env.php >>'PHP'
+          <?php
+          const BDD_LOGIN = "root";
+          const BDD_PASSWORD = "Adrar@3100";
+          const BDD_SERVER = "127.0.0.1";
+          const BDD_NAME = "taskdb";
+          const BASE_URL = "/"
+          PHP
+      
+      # installer les dépendances PHP
+      - name: Composer install
+        run: |
+          composer install 
+      # migration BDD
+      - name: Migration BDD
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -u root -pAdrar@3100 < base.sql 
+      
+      # démarrer le serveur PHP
+      - name: start serveur PHP
+        run: |
+          php -S 127.0.0.1:8000
+      
+      # installer et démarrer les tests Cypress
+      - name : Test Cypress
+        uses: cypress-io/github-action@v6
