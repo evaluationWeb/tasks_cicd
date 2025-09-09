@@ -73,7 +73,7 @@ jobs:
           PHP
 
       # Deploy to FTP
-      - name: 📂 Deployment to FTP
+      - name: 📂 Deployment to FTP 
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ${{ secrets.FTP_SERVER }}
