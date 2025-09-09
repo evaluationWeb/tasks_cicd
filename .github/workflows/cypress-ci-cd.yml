@@ -56,7 +56,7 @@ jobs:
       - name: start PHP
         run: php -S 127.0.0.1:8000 &
 
-      # Cypress Actions
+      # Cypress Actions 
       - name : Test Cypress
         uses: cypress-io/github-action@v6
       
