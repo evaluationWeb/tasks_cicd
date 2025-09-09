@@ -28,9 +28,8 @@ jobs:
           --health-retries=5
     # Etapes du pipeline
     steps:
-      # Récupération du code
       - name: Checkout
-        uses: actions:checkout@v4
+        uses: actions/checkout@v4
 
       # Installation de PHP et Composer
       - name: Setup PHP CLI (Composer & outils)
