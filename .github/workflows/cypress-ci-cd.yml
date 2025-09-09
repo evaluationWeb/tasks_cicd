@@ -54,8 +54,7 @@ jobs:
           const BASE_URL = "/";
           PHP
       - name: start PHP
-        run: |
-          php -S 127.0.0.1:8000
+        run: php -S 127.0.0.1:8000
 
       # Cypress Actions
       - name : Test Cypress
