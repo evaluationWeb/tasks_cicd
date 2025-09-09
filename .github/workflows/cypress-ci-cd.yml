@@ -42,13 +42,13 @@ jobs:
       # créer le fichier env.php
       - name: Creer fichier env
         run: |
-          cat > env.php >>'PHP'
+          cat > env.php <<'PHP'
           <?php
           const BDD_LOGIN = "root";
           const BDD_PASSWORD = "Adrar@3100";
-          const BDD_SERVER = "127.0.0.1";
+          const BDD_SERVER = "127.0.0.1:3306";
           const BDD_NAME = "taskdb";
-          const BASE_URL = "/"
+          const BASE_URL = "/";
           PHP
       
       # installer les dépendances PHP
