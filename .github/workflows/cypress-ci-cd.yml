@@ -79,6 +79,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
+      # Setup PHP, Composer, extensions
+      - name: Setup PHP CLI (Composer & outils)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, pdo_mysql, sodium, zip
+          tools: composer
+          coverage: none
+      
+      # installation des dépendances composer prod
+      - name: Installer dépendances Composer
+        run: composer install --no-interaction --prefer-dist
+      
       # build env.php for prod
       - name: Build env.php for the app prod
         run: |
