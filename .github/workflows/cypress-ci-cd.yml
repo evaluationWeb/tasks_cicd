@@ -8,10 +8,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Job environnement + test e2e cypress 
   e2e:
     runs-on: ubuntu-latest
-
+    # Configuration des services
     services:
+      # Service MySQL
       mysql:
         image: mysql:8.0
         env:
@@ -24,11 +26,13 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-
+    # Etapes du job
     steps:
+      # Checkout du code(récupération depuis le repo github)
       - name: Checkout
         uses: actions/checkout@v4
-
+      
+      # Setup PHP, Composer, extensions
       - name: Setup PHP CLI (Composer & outils)
         uses: shivammathur/setup-php@v2
         with:
@@ -36,13 +40,17 @@ jobs:
           extensions: mbstring, intl, pdo_mysql, sodium, zip
           tools: composer
           coverage: none
-
+      
+      # installation des dépendances composer
       - name: Installer dépendances Composer
         run: composer install --no-interaction --prefer-dist
-
+      
+      # migration de la base de données
       - name: Importer la base de données
         run: |
           mysql -h 127.0.0.1 -P 3306 -u root -prootpw < base.sql
+      
+      # build env.php for test 
       - name: Build env.php for the app test
         run: |
           cat > env.php <<'PHP'
@@ -53,6 +61,8 @@ jobs:
           const BDD_NAME = "taskdb";
           const BASE_URL = "/";
           PHP
+      
+      # Démmarage du serveur PHP sur le port 8000
       - name: start PHP
         run: php -S 127.0.0.1:8000 &
 
@@ -60,7 +70,16 @@ jobs:
       - name : Test Cypress
         uses: cypress-io/github-action@v6
       
-      # fichier env de production
+  # Job de deploiement par FTP
+  deploy:
+    needs: e2e
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout du code(récupération depuis le repo github)
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      # build env.php for prod
       - name: Build env.php for the app prod
         run: |
           cat > env.php <<'PHP'
@@ -71,9 +90,9 @@ jobs:
           const BDD_NAME = "${{ secrets.BDD_NAME }}";
           const BASE_URL = "/";
           PHP
-
-      # Deploy to FTP
-      - name: 📂 Deployment to FTP 
+      
+      # Deployment via FTP
+      - name: 📂 Deployment to FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ${{ secrets.FTP_SERVER }}
